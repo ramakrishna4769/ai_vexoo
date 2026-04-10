@@ -1,0 +1,6 @@
+__pycache__/
+*.zip
+*.pyc
+venv/
+.env
+gsm8k_llama_lora/
