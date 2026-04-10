@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knowledge Pyramid | Vexoo Labs</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        :root {
+            --bg: #0a0a0f;
+            --surface: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.08);
+            --primary: #8a2be2;
+            --primary-glow: rgba(138, 43, 226, 0.4);
+            --text: #e2e8f0;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(138, 43, 226, 0.08), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(56, 189, 248, 0.08), transparent 25%);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            padding: 4rem 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        p.subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.75rem;
+            color: #e2e8f0;
+        }
+
+        textarea, input[type="text"] {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1rem;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        textarea:focus, input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px var(--primary-glow);
+        }
+
+        button {
+            margin-top: 1rem;
+            background: linear-gradient(135deg, #8a2be2, #4f46e5);
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px var(--primary-glow);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(138, 43, 226, 0.6);
+        }
+
+        .results {
+            display: none;
+            flex-direction: column;
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .node-card {
+            background: rgba(255, 255, 255, 0.02);
+            border-left: 4px solid var(--primary);
+            padding: 1.5rem;
+            border-radius: 8px;
+            animation: slideUp 0.4s ease forwards;
+        }
+
+        .tag {
+            display: inline-block;
+            background: rgba(138, 43, 226, 0.2);
+            color: #d8b4fe;
+            padding: 0.25rem 0.75rem;
+            border-radius: 99px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .pyramid-layer {
+            margin-bottom: 1rem;
+        }
+
+        .pyramid-header {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.25rem;
+        }
+
+        .query-section { margin-top: 1rem; }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .match-card {
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(138, 43, 226, 0.1));
+            border: 1px solid rgba(138, 43, 226, 0.3);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .match-score {
+            font-weight: 700;
+            color: #38bdf8;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Knowledge Pyramid</h1>
+            <p class="subtitle">Agentic Knowledge Distillation Demo</p>
+        </header>
+
+        <section class="panel">
+            <label for="docText">Paste Document Text (Ingestion)</label>
+            <textarea id="docText" rows="6" placeholder="The company reported a massive increase in revenue for Q3, reaching nearly 2 billion dollars in profit. This financial success is largely attributed to their new AI technology products..."></textarea>
+            <button onclick="ingestDocument()">Build Pyramid & Ingest</button>
+
+            <div id="loadingIngest" style="display:none; margin-top:1rem; color: #94a3b8;">Processing sliding window chunks...</div>
+            <div id="ingestResults" class="results">
+                <h3 style="color: white; margin-top: 1rem; font-weight: 500;">Extracted Knowledge Pyramids (Windows)</h3>
+                <div id="nodesContainer"></div>
+            </div>
+        </section>
+
+        <section class="panel query-section" id="queryPanel" style="opacity: 0.5; pointer-events: none; transition: opacity 0.3s;">
+            <label for="queryText">Semantic Search Query</label>
+            <input type="text" id="queryText" placeholder="e.g. What is the financial status?">
+            <button onclick="searchQuery()" style="background: linear-gradient(135deg, #0284c7, #3b82f6); box-shadow: 0 4px 15px rgba(2, 132, 199, 0.4);">Retrieve Answer</button>
+            
+            <div id="loadingQuery" style="display:none; margin-top:1rem; color: #94a3b8;">Searching latent layers...</div>
+            <div id="matchCard" class="match-card">
+                <span class="tag" style="background: rgba(56, 189, 248, 0.2); color: #bae6fd;">Best Semantic Match Layer</span>
+                <div style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 0.5rem;">Layer Matched: <strong id="mLayer" style="color: white;">-</strong></div>
+                <div style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 0.5rem;">Match Score (Word Overlap Simulation): <span id="mScore" class="match-score">-</span></div>
+                <div class="pyramid-layer">
+                    <div class="pyramid-header">Extracted Context</div>
+                    <div id="mText" style="line-height: 1.5;">-</div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        async function ingestDocument() {
+            const text = document.getElementById('docText').value;
+            if(!text) return alert("Please enter text.");
+            
+            document.getElementById('loadingIngest').style.display = "block";
+            document.getElementById('ingestResults').style.display = "none";
+
+            try {
+                const res = await fetch('/api/ingest', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({text})
+                });
+                const data = await res.json();
+
+                const container = document.getElementById('nodesContainer');
+                container.innerHTML = '';
+
+                data.nodes.forEach((node, i) => {
+                    container.innerHTML += `
+                        <div class="node-card" style="animation-delay: ${i*0.1}s">
+                            <span class="tag">Window Chunk ${i+1}</span>
+                            <div class="pyramid-layer" style="margin-bottom:0.5rem">
+                                <div class="pyramid-header">Category / Theme</div>
+                                <div style="font-weight: 500; color: #38bdf8;">${node.category}</div>
+                            </div>
+                            <div class="pyramid-layer">
+                                <div class="pyramid-header">Chunk Summary</div>
+                                <div>${node.summary}</div>
+                            </div>
+                            <div class="pyramid-layer">
+                                <div class="pyramid-header">Distilled Knowledge</div>
+                                <div style="color: #d8b4fe;">${node.distilled}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                document.getElementById('ingestResults').style.display = "flex";
+                
+                // Enable query panel
+                const qPanel = document.getElementById('queryPanel');
+                qPanel.style.opacity = "1";
+                qPanel.style.pointerEvents = "auto";
+            } catch(e) {
+                alert("Error: " + e.message);
+            } finally {
+                document.getElementById('loadingIngest').style.display = "none";
+            }
+        }
+
+        async function searchQuery() {
+            const query = document.getElementById('queryText').value;
+            if(!query) return;
+
+            document.getElementById('loadingQuery').style.display = "block";
+            document.getElementById('matchCard').style.display = "none";
+
+            try {
+                const res = await fetch('/api/query', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({query})
+                });
+                const data = await res.json();
+
+                if(data.result.error) {
+                    alert(data.result.error);
+                } else {
+                    document.getElementById('mLayer').innerText = data.result.matched_layer;
+                    document.getElementById('mScore').innerText = data.result.score;
+                    document.getElementById('mText').innerText = data.result.matched_text;
+                    document.getElementById('matchCard').style.display = "block";
+                }
+            } catch(e) {
+                alert("Error: " + e.message);
+            } finally {
+                document.getElementById('loadingQuery').style.display = "none";
+            }
+        }
+    </script>
+</body>
+</html>
